@@ -1,0 +1,269 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  --primary: #6366f1;
+  --primary-hover: #4f46e5;
+  --background: #f9fafb;
+  --card-bg: #ffffff;
+  --text: #1f2937;
+  --text-secondary: #6b7280;
+  --border: #e5e7eb;
+  --error: #ef4444;
+  --success: #10b981;
+  --radius: 12px;
+  --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  line-height: 1.5;
+  color: var(--text);
+  background-color: var(--background);
+  min-height: 100vh;
+}
+
+.slider {
+  height: 280px;
+  background: linear-gradient(135deg, var(--primary), var(--primary-hover));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  text-align: center;
+  padding: 0 20px;
+  margin-bottom: -80px;
+}
+
+.slider-content {
+  max-width: 800px;
+}
+
+.slider h1 {
+  font-size: 2.5rem;
+  font-weight: 600;
+  margin-bottom: 12px;
+  letter-spacing: -0.025em;
+}
+
+.slider p {
+  font-size: 1.125rem;
+  opacity: 0.9;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 20px;
+  position: relative;
+}
+
+.upload-section {
+  background-color: var(--card-bg);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 30px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 30px;
+  gap: 20px;
+}
+
+.upload-button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background-color: var(--background);
+  color: var(--text);
+  border: 2px dashed var(--border);
+  padding: 15px 25px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-weight: 500;
+}
+
+.upload-button:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.file-input {
+  display: none;
+}
+
+.process-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: var(--primary);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+  font-weight: 500;
+  font-size: 0.95rem;
+}
+
+.process-button:hover:not(:disabled) {
+  background-color: var(--primary-hover);
+  transform: translateY(-1px);
+}
+
+.process-button:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.process-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.images-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 30px;
+  margin-bottom: 40px;
+}
+
+.image-box {
+  background-color: var(--card-bg);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.image-box h2 {
+  padding: 20px;
+  font-size: 1.25rem;
+  font-weight: 500;
+  color: var(--text);
+  border-bottom: 1px solid var(--border);
+}
+
+.image-container {
+  height: 300px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  position: relative;
+  background-color: var(--background);
+}
+
+.image-container img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  transition: transform 0.3s ease;
+}
+
+.image-container img:hover {
+  transform: scale(1.02);
+}
+
+.placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+  text-align: center;
+  padding: 20px;
+}
+
+.placeholder svg {
+  margin-bottom: 15px;
+  opacity: 0.7;
+}
+
+.placeholder p {
+  font-size: 0.95rem;
+}
+
+.loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: var(--card-bg);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 30px;
+  margin-top: 20px;
+}
+
+.spinner {
+  border: 3px solid rgba(0, 0, 0, 0.1);
+  border-radius: 50%;
+  border-top: 3px solid var(--primary);
+  width: 36px;
+  height: 36px;
+  animation: spin 1s linear infinite;
+  margin-bottom: 15px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.error-message {
+  background-color: rgba(239, 68, 68, 0.1);
+  color: var(--error);
+  padding: 15px;
+  border-radius: var(--radius);
+  margin-top: 20px;
+  text-align: center;
+  border-left: 4px solid var(--error);
+}
+
+.hidden {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .slider {
+    height: 220px;
+    margin-bottom: -60px;
+  }
+  
+  .slider h1 {
+    font-size: 1.8rem;
+  }
+  
+  .slider p {
+    font-size: 1rem;
+  }
+  
+  .upload-section {
+    padding: 20px;
+  }
+  
+  .image-container {
+    height: 250px;
+  }
+}
+
+@media (max-width: 480px) {
+  .slider {
+    height: 180px;
+    margin-bottom: -50px;
+  }
+  
+  .slider h1 {
+    font-size: 1.5rem;
+  }
+  
+  .upload-button, .process-button {
+    width: 100%;
+    justify-content: center;
+  }
+}
