@@ -1,0 +1,2 @@
+# Ignoramos los venvs de Python
+venv*/

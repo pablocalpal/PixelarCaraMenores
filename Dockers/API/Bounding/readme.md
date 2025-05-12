@@ -15,4 +15,4 @@ Este componente se encarga de la detección de caras en imágenes. Utiliza un mo
 
 Endpoint expuesto:
 
-* `/detect-faces` (POST): Recibe una imagen y devuelve las coordenadas de las caras detectadas.
+* `/detect_faces` (POST): Recibe una imagen y devuelve las coordenadas de las caras detectadas.
