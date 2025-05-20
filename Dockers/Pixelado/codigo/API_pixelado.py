@@ -97,7 +97,7 @@ def detectar_caras():
         
 
         # Número de bloques para pixelar
-        blocks = 10
+        blocks = 6
 
         # Dimensiones de la imagen
         h, w = image.shape[:2]
@@ -149,7 +149,7 @@ app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB tamaño máximo de c
 
 if __name__ == "__main__":
     # Ejecutar la aplicación
-    app.run(host="0.0.0.0", port=5001, debug=False)
+    app.run(host="0.0.0.0", port=5000, debug=False)
     
     
     

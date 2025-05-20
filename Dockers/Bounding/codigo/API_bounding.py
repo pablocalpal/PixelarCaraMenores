@@ -20,7 +20,7 @@ def allowed_file(filename):
     :return: Booleano, True si el archivo es permitido, False en caso contrario
     """
     return '.' in filename and \
-           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+        filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 def validate_image(file):
     """
@@ -68,6 +68,9 @@ def detectar_caras():
         if file.filename == '':
             return jsonify({"error": "El archivo no tiene nombre."}), 400
         
+        print("Nombre del archivo recibido:", file.filename)
+        print("Extensión válida:", allowed_file(file.filename))
+
         # Validar extensión del archivo
         if not allowed_file(file.filename):
             return jsonify({
@@ -152,4 +155,4 @@ app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB tamaño máximo de c
 
 if __name__ == "__main__":
     # Ejecutar la aplicación
-    app.run(host="0.0.0.0", port=5001, debug=False)
+    app.run(host="0.0.0.0", port=5001, debug=True)

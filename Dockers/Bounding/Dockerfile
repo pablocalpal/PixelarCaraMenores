@@ -4,6 +4,12 @@ FROM python:3.9-slim
 # Set working directory
 WORKDIR /app
 
+# Instala dependencias del sistema
+RUN apt-get update && apt-get install -y \
+    libgl1 \
+    libglib2.0-0 \
+    && rm -rf /var/lib/apt/lists/*
+
 # Install dependencies - with specific sequence to manage compatibility
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir \
@@ -13,7 +19,7 @@ RUN pip install --no-cache-dir --upgrade pip && \
     werkzeug \
     opencv-python-headless && \
     pip install --no-cache-dir tensorflow==2.5.0 && \
-    pip install --no-cache-dir retinaface==1.1.1
+    pip install retina-face==0.0.17
 
 # Copy API code
 COPY ./codigo/API_bounding.py /app/API_bounding.py

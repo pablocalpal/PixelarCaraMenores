@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  public_api:
+    build:
+      context: ./API
+    container_name: public_api
+    networks:
+      - backend
+    ports:
+      - "8000:8000"
+    depends_on:
+      - engine
+
+  engine:
+    build:
+      context: ./Engine
+    container_name: engine
+    networks:
+      - backend
+    ports:
+      - "5003:5003"
+    depends_on:
+      - bounding
+      - clasificacion
+      - pixelado
+
+  bounding:
+    build:
+      context: ./Bounding
+    container_name: bounding
+    networks:
+      - backend
+    ports:
+      - "5001:5001"
+
+  clasificacion:
+    build:
+      context: ./ClasificacionEdad
+    container_name: clasificacionedad
+    networks:
+      - backend
+    ports:
+      - "5002:5002"
+
+  pixelado:
+    build:
+      context: ./Pixelado
+    container_name: pixelado
+    networks:
+      - backend
+    ports:
+      - "5000:5000"
+
+networks:
+  backend:
+    driver: bridge

@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+  api:
+    build: .
+    container_name: api_engine
+    networks:
+      - backend
+    ports:
+      - "5003:5003"
+
+networks:
+  backend:
+    driver: bridge
