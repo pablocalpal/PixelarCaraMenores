@@ -51,8 +51,8 @@ def validate_image(file):
 @app.route("/menores", methods=["POST"])
 def detectar_menores():
     """
-    Endpoint para clasificar imágenes de caras de personas. Utiliza un modelo entrenado para predecir la edad y devuelve un array de booleanos según si la edad predicha es menor de 18 años.
-    :return: Array de booleanos
+    Endpoint para clasificar imágenes de caras de personas. Utiliza un modelo entrenado para predecir si una persona es menor de 18 años.
+    :return: Array de booleanos (convertidos a 0/1 para facilitar interpretación)
     """
     try:
         # Verificar si se han enviado archivos
@@ -70,18 +70,17 @@ def detectar_menores():
         resultados = []
 
         for archivo in archivos:
-            # Verificar si el archivo tiene nombre
             if archivo.filename == '':
                 resultados.append(False)
                 continue
 
-            # Validar extensión del archivo
             if not allowed_file(archivo.filename):
                 resultados.append(False)
                 continue
 
             try:
-                # Leer la imagen en formato numpy array
+                validate_image(archivo)
+
                 file_bytes = np.frombuffer(archivo.read(), np.uint8)
                 image = cv2.imdecode(file_bytes, cv2.IMREAD_COLOR)
 
@@ -89,30 +88,24 @@ def detectar_menores():
                     resultados.append(False)
                     continue
 
-                # Redimensionar y normalizar correctamente
-                resized = cv2.resize(image, (64, 64))  # Cambiar a 64x64 para coincidir con el modelo
-                normalized = resized / 255.0  # Normalización única
+                resized = cv2.resize(image, (64, 64))
+                normalized = resized / 255.0
+                input_data = np.expand_dims(normalized, axis=0)
 
-                # Agregar dimensión de lote (batch) sin aplanar
-                input_data = np.expand_dims(normalized, axis=0)  # Forma resultante: (1, 64, 64, 3)
-
-                # Realizar predicción
+                # Predicción binaria directamente del modelo
                 prediccion = model.predict(input_data)
-                
-                
-                
-                edad_predicha = prediccion[0][0]
 
-                # Añadir resultado al array
-                resultados.append(edad_predicha < 18)
+                # Asumiendo que el modelo devuelve una probabilidad (sigmoid), puedes usar umbral
+                resultado = prediccion[0][0] > 0.5  # True = menor de edad
+                resultados.append(bool(resultado))
 
             except Exception as e:
-                        return jsonify({
-                        "error": "Error al procesar imagen.",
-                        "detalle": str(e)
-                    }), 500
+                return jsonify({
+                    "error": "Error al procesar imagen.",
+                    "detalle": str(e)
+                }), 500
 
-        return jsonify([int(r) for r in resultados]), 200 # Convertir booleanos a enteros (0 o 1) para que jsonify los acepte
+        return jsonify([int(r) for r in resultados]), 200
 
     except Exception as e:
         return jsonify({
