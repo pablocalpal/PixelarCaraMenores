@@ -62,20 +62,17 @@ document.addEventListener("DOMContentLoaded", () => {
       return
     }
 
-    // Mostrar indicador de carga
     showLoading()
 
-    // Crear FormData para enviar el archivo
     const formData = new FormData()
-    formData.append("image", selectedFile)
+    formData.append("file", selectedFile) // <- campo correcto
 
-    // Configuración de la petición
-    // Nota: Reemplaza la URL con la de tu API real
-    const apiUrl = "https://tu-api.com/procesar-imagen"
+    const apiUrl = "http://localhost:8000/pixelar_menores"
 
-    fetch(apiUrl, {
+    fetchWithTimeout(apiUrl, {
       method: "POST",
       body: formData,
+      timeout: 30000 // 30 segundos
     })
       .then((response) => {
         if (!response.ok) {
@@ -91,12 +88,6 @@ document.addEventListener("DOMContentLoaded", () => {
         console.error("Error:", error)
         hideLoading()
         showError("Error al procesar la imagen. Por favor, intenta de nuevo más tarde.")
-
-        // Para fines de demostración, simulamos una respuesta exitosa
-        // En un entorno real, elimina este código
-        setTimeout(() => {
-          simulateSuccessResponse()
-        }, 1000)
       })
   }
 
@@ -129,23 +120,15 @@ document.addEventListener("DOMContentLoaded", () => {
     errorMessageElement.classList.add("hidden")
   }
 
-  // Función para simular una respuesta exitosa (solo para demostración)
-  // En un entorno real, elimina esta función
-  function simulateSuccessResponse() {
-    if (selectedFile) {
-      const reader = new FileReader()
+  // Función para hacer fetch con timeout
+  function fetchWithTimeout(resource, options = {}) {
+    const { timeout = 30000 } = options
 
-      reader.onload = (e) => {
-        modifiedImageContainer.innerHTML = ""
-        const img = document.createElement("img")
-        img.src = e.target.result
-        img.style.filter = "sepia(70%) hue-rotate(180deg)" // Filtro más moderno
-        img.alt = "Imagen modificada"
-        modifiedImageContainer.appendChild(img)
-        hideLoading()
-      }
-
-      reader.readAsDataURL(selectedFile)
-    }
+    return Promise.race([
+      fetch(resource, options),
+      new Promise((_, reject) =>
+        setTimeout(() => reject(new Error("Tiempo de espera agotado")), timeout)
+      )
+    ])
   }
 })

@@ -2,7 +2,7 @@ FROM python:3.9-slim
 
 WORKDIR /app
 
-RUN pip install --no-cache-dir Flask requests
+RUN pip install --no-cache-dir Flask requests flask-cors
 
 COPY ./codigo/API_gateway.py /app/API_gateway.py
 

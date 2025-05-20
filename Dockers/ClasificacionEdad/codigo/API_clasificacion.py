@@ -95,8 +95,8 @@ def detectar_menores():
                 # Predicción binaria directamente del modelo
                 prediccion = model.predict(input_data)
 
-                # Asumiendo que el modelo devuelve una probabilidad (sigmoid), puedes usar umbral
-                resultado = prediccion[0][0] > 0.5  # True = menor de edad
+
+                resultado = prediccion[0][0] < 0.6 # Umbral de 0.01 para clasificar como menor
                 resultados.append(bool(resultado))
 
             except Exception as e:
