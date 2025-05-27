@@ -75,6 +75,7 @@ body {
   gap: 20px;
 }
 
+
 .upload-button {
   display: flex;
   align-items: center;
@@ -87,6 +88,18 @@ body {
   cursor: pointer;
   transition: all 0.2s ease;
   font-weight: 500;
+}
+
+.debug-button {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--text);
+  border: 1px dashed var(--border);
+  padding: 10px 20px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-weight: 300;
 }
 
 .upload-button:hover {

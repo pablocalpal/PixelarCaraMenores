@@ -20,6 +20,48 @@ def inicio():
     return jsonify({"message": "API Engine operativa"}), 200
 
 
+def dibujar_debug_image(imagen_np, detecciones, predicciones_detalle):
+    """
+    Dibuja bounding boxes con información de debug en la imagen
+    """
+    imagen_debug = imagen_np.copy()
+    
+    for i, (deteccion, prediccion) in enumerate(zip(detecciones, predicciones_detalle)):
+        x1, y1, x2, y2 = deteccion["bbox"]
+        probabilidad = prediccion["probabilidad"]
+        es_menor = prediccion["es_menor"]
+        
+        # Color del bounding box: rojo si es menor, verde si no
+        color = (0, 0, 255) if es_menor else (0, 255, 0)  # BGR format
+        
+        # Dibujar rectángulo
+        cv2.rectangle(imagen_debug, (x1, y1), (x2, y2), color, 2)
+        
+        # Texto con información
+        texto = f"P: {probabilidad:.3f}"
+        etiqueta = "MENOR" if es_menor else "ADULTO"
+        
+        # Fondo para el texto
+        (text_width, text_height), _ = cv2.getTextSize(texto, cv2.FONT_HERSHEY_SIMPLEX, 0.6, 2)
+        (label_width, label_height), _ = cv2.getTextSize(etiqueta, cv2.FONT_HERSHEY_SIMPLEX, 0.5, 2)
+        
+        # Rectángulo de fondo para probabilidad
+        cv2.rectangle(imagen_debug, (x1, y1 - text_height - 10), 
+                     (x1 + text_width + 10, y1), color, -1)
+        
+        # Rectángulo de fondo para etiqueta
+        cv2.rectangle(imagen_debug, (x1, y2), 
+                     (x1 + label_width + 10, y2 + label_height + 10), color, -1)
+        
+        # Texto blanco
+        cv2.putText(imagen_debug, texto, (x1 + 5, y1 - 5), 
+                   cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
+        cv2.putText(imagen_debug, etiqueta, (x1 + 5, y2 + label_height + 5), 
+                   cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
+    
+    return imagen_debug
+
+
 @app.route("/procesar", methods=["POST"])
 def procesar():
     if 'imagen' not in request.files:
@@ -31,6 +73,9 @@ def procesar():
 
     if imagen_np is None:
         return jsonify({"error": "No se pudo procesar la imagen"}), 400
+
+    # Verificar si está activado el modo debug
+    debug_mode = request.form.get('debug', 'false').lower() == 'true'
 
     try:
         # Paso 1: Bounding box
@@ -44,6 +89,18 @@ def procesar():
         bounding_json = res_bounding.json()
         detecciones = bounding_json.get("detecciones", [])
 
+        # Si no hay detecciones, devolver imagen original
+        if not detecciones:
+            if debug_mode:
+                # Devolver imagen original con mensaje de "no faces detected"
+                imagen_debug = imagen_np.copy()
+                cv2.putText(imagen_debug, "No faces detected", (50, 50), 
+                           cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+                _, buffer = cv2.imencode('.jpg', imagen_debug)
+                return Response(buffer.tobytes(), content_type='image/jpeg')
+            else:
+                return Response(imagen_bytes, content_type='image/jpeg')
+
         # Paso 2: Recortar cada bounding box y convertir a imagen
         imagenes_caras = []
         for i, face in enumerate(detecciones):
@@ -54,16 +111,42 @@ def procesar():
             face_bytes.name = f"cara_{i}.jpg"
             imagenes_caras.append(('imagenes', (face_bytes.name, face_bytes, 'image/jpeg')))
 
-        # Paso 2: Clasificación
+        # Paso 2: Clasificación (con información detallada si es debug)
+        clasificacion_data = {'debug': 'true' if debug_mode else 'false'}
+        
         res_clasificacion = requests.post(
             URL_CLASIFICACION,
-            files=imagenes_caras
+            files=imagenes_caras,
+            data=clasificacion_data
         )
         
         if res_clasificacion.status_code != 200:
             return jsonify({"error": "Error en clasificación", "detalle": res_clasificacion.text}), 500
 
-        menores = res_clasificacion.json()  # lista de 0 y 1
+        clasificacion_json = res_clasificacion.json()
+        
+        # Si es modo debug, devolver imagen con bounding boxes anotados
+        if debug_mode:
+            if isinstance(clasificacion_json, dict) and 'detalle' in clasificacion_json:
+                predicciones_detalle = clasificacion_json['detalle']
+                imagen_debug = dibujar_debug_image(imagen_np, detecciones, predicciones_detalle)
+                _, buffer = cv2.imencode('.jpg', imagen_debug)
+                return Response(buffer.tobytes(), content_type='image/jpeg')
+            else:
+                # Fallback si la API de clasificación no soporta modo debug
+                menores = clasificacion_json if isinstance(clasificacion_json, list) else []
+                predicciones_detalle = []
+                for i, es_menor in enumerate(menores):
+                    predicciones_detalle.append({
+                        "probabilidad": 0.5,  # Valor por defecto
+                        "es_menor": bool(es_menor)
+                    })
+                imagen_debug = dibujar_debug_image(imagen_np, detecciones, predicciones_detalle)
+                _, buffer = cv2.imencode('.jpg', imagen_debug)
+                return Response(buffer.tobytes(), content_type='image/jpeg')
+
+        # Modo normal: proceder con pixelado
+        menores = clasificacion_json if isinstance(clasificacion_json, list) else clasificacion_json.get('resultados', [])
 
         # Filtrar bboxes para los que son menores
         menores_bboxes = []

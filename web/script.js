@@ -6,6 +6,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const modifiedImageContainer = document.getElementById("modified-image-container")
   const loadingElement = document.getElementById("loading")
   const errorMessageElement = document.getElementById("error-message")
+  const debugCheckbox = document.getElementById("debug-checkbox")
 
   // Variables para almacenar datos
   let selectedFile = null
@@ -14,7 +15,6 @@ document.addEventListener("DOMContentLoaded", () => {
   imageInput.addEventListener("change", handleImageSelection)
   uploadButton.addEventListener("click", uploadImage)
 
-  // Función para manejar la selección de imagen
   function handleImageSelection(event) {
     const file = event.target.files[0]
 
@@ -23,7 +23,6 @@ document.addEventListener("DOMContentLoaded", () => {
       displayOriginalImage(file)
       uploadButton.disabled = false
 
-      // Limpiar el contenedor de imagen modificada y mensajes de error
       modifiedImageContainer.innerHTML = `
         <div class="placeholder">
           <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
@@ -40,7 +39,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // Función para mostrar la imagen original
   function displayOriginalImage(file) {
     const reader = new FileReader()
 
@@ -55,7 +53,6 @@ document.addEventListener("DOMContentLoaded", () => {
     reader.readAsDataURL(file)
   }
 
-  // Función para subir la imagen a la API
   function uploadImage() {
     if (!selectedFile) {
       showError("Por favor, selecciona una imagen primero.")
@@ -65,14 +62,19 @@ document.addEventListener("DOMContentLoaded", () => {
     showLoading()
 
     const formData = new FormData()
-    formData.append("file", selectedFile) // <- campo correcto
+    formData.append("file", selectedFile)
+
+    // Agregar debug=true si el checkbox está marcado
+    if (debugCheckbox.checked) {
+      formData.append("debug", "true")
+    }
 
     const apiUrl = "http://localhost:8000/pixelar_menores"
 
     fetchWithTimeout(apiUrl, {
       method: "POST",
       body: formData,
-      timeout: 30000 // 30 segundos
+      timeout: 30000
     })
       .then((response) => {
         if (!response.ok) {
@@ -91,10 +93,8 @@ document.addEventListener("DOMContentLoaded", () => {
       })
   }
 
-  // Función para mostrar la imagen modificada
   function displayModifiedImage(imageBlob) {
     const imageUrl = URL.createObjectURL(imageBlob)
-
     modifiedImageContainer.innerHTML = ""
     const img = document.createElement("img")
     img.src = imageUrl
@@ -102,7 +102,6 @@ document.addEventListener("DOMContentLoaded", () => {
     modifiedImageContainer.appendChild(img)
   }
 
-  // Funciones auxiliares para UI
   function showLoading() {
     loadingElement.classList.remove("hidden")
   }
@@ -120,7 +119,6 @@ document.addEventListener("DOMContentLoaded", () => {
     errorMessageElement.classList.add("hidden")
   }
 
-  // Función para hacer fetch con timeout
   function fetchWithTimeout(resource, options = {}) {
     const { timeout = 30000 } = options
 

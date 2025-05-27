@@ -23,12 +23,23 @@ def upload_image():
                      "Use PNG, JPG, JPEG, BMP, GIF o WEBP."
         }), 400
 
+    # Verificar si está activado el modo debug
+    debug_mode = request.form.get('debug', 'false').lower() == 'true'
+
     try:
-        res = requests.post(
-            ENGINE_URL,
-            files={"imagen": (file.filename, file.read(), file.content_type)},
-            timeout=30
-        )
+        if debug_mode:
+            res = requests.post(
+                ENGINE_URL,
+                files={"imagen": (file.filename, file.read(), file.content_type)},
+                data={"debug": "true"},
+                timeout=30
+            )
+        else:
+            res = requests.post(
+                ENGINE_URL,
+                files={"imagen": (file.filename, file.read(), file.content_type)},
+                timeout=30
+            )
         res.raise_for_status()
         return res.content, res.status_code, {'Content-Type': res.headers.get('Content-Type', 'application/json')}
     except Exception as e:

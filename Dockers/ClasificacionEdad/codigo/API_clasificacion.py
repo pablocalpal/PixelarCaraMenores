@@ -52,12 +52,15 @@ def validate_image(file):
 def detectar_menores():
     """
     Endpoint para clasificar imágenes de caras de personas. Utiliza un modelo entrenado para predecir si una persona es menor de 18 años.
-    :return: Array de booleanos (convertidos a 0/1 para facilitar interpretación)
+    :return: Array de booleanos (convertidos a 0/1 para facilitar interpretación) o información detallada si debug=true
     """
     try:
         # Verificar si se han enviado archivos
         if 'imagenes' not in request.files:
             return jsonify({"error": "No se han proporcionado imágenes."}), 400
+
+        # Verificar si está activado el modo debug
+        debug_mode = request.form.get('debug', 'false').lower() == 'true'
 
         # Cargar el modelo
         try:
@@ -68,14 +71,31 @@ def detectar_menores():
         # Leer las imágenes
         archivos = request.files.getlist("imagenes")
         resultados = []
+        resultados_detalle = []
 
-        for archivo in archivos:
+        for i, archivo in enumerate(archivos):
             if archivo.filename == '':
-                resultados.append(False)
+                resultado_simple = 0
+                resultado_detallado = {
+                    "imagen_id": i,
+                    "probabilidad": 0.0,
+                    "es_menor": False,
+                    "error": "Archivo vacío"
+                }
+                resultados.append(resultado_simple)
+                resultados_detalle.append(resultado_detallado)
                 continue
 
             if not allowed_file(archivo.filename):
-                resultados.append(False)
+                resultado_simple = 0
+                resultado_detallado = {
+                    "imagen_id": i,
+                    "probabilidad": 0.0,
+                    "es_menor": False,
+                    "error": "Tipo de archivo no permitido"
+                }
+                resultados.append(resultado_simple)
+                resultados_detalle.append(resultado_detallado)
                 continue
 
             try:
@@ -85,7 +105,15 @@ def detectar_menores():
                 image = cv2.imdecode(file_bytes, cv2.IMREAD_COLOR)
 
                 if image is None:
-                    resultados.append(False)
+                    resultado_simple = 0
+                    resultado_detallado = {
+                        "imagen_id": i,
+                        "probabilidad": 0.0,
+                        "es_menor": False,
+                        "error": "No se pudo decodificar la imagen"
+                    }
+                    resultados.append(resultado_simple)
+                    resultados_detalle.append(resultado_detallado)
                     continue
 
                 resized = cv2.resize(image, (64, 64))
@@ -94,18 +122,45 @@ def detectar_menores():
 
                 # Predicción binaria directamente del modelo
                 prediccion = model.predict(input_data)
-
-
-                resultado = prediccion[0][0] < 0.6 # Umbral de 0.01 para clasificar como menor
-                resultados.append(bool(resultado))
+                probabilidad_raw = float(prediccion[0][0])
+                
+                # Umbral de 0.6 para clasificar como menor
+                es_menor = probabilidad_raw < 0.6
+                resultado_simple = int(es_menor)
+                
+                resultado_detallado = {
+                    "imagen_id": i,
+                    "probabilidad": probabilidad_raw,
+                    "es_menor": es_menor,
+                    "confianza": abs(probabilidad_raw - 0.6),  # Qué tan lejos está del umbral
+                    "umbral_usado": 0.6
+                }
+                
+                resultados.append(resultado_simple)
+                resultados_detalle.append(resultado_detallado)
 
             except Exception as e:
-                return jsonify({
-                    "error": "Error al procesar imagen.",
-                    "detalle": str(e)
-                }), 500
+                resultado_simple = 0
+                resultado_detallado = {
+                    "imagen_id": i,
+                    "probabilidad": 0.0,
+                    "es_menor": False,
+                    "error": f"Error al procesar imagen: {str(e)}"
+                }
+                resultados.append(resultado_simple)
+                resultados_detalle.append(resultado_detallado)
 
-        return jsonify([int(r) for r in resultados]), 200
+        # Retornar respuesta según el modo
+        if debug_mode:
+            return jsonify({
+                "resultados": resultados,
+                "detalle": resultados_detalle,
+                "debug": True,
+                "total_imagenes": len(archivos),
+                "menores_detectados": sum(resultados)
+            }), 200
+        else:
+            return jsonify(resultados), 200
 
     except Exception as e:
         return jsonify({
