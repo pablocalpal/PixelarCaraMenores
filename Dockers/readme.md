@@ -1,5 +1,4 @@
-# Docker Compose - Sistema Completo de Protección de Menores
-
+# Docker 
 Este directorio contiene la configuración de Docker Compose para desplegar todo el sistema de detección y protección de menores en imágenes como un conjunto de microservicios.
 
 ## 🏗️ Arquitectura del Sistema
