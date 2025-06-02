@@ -15,4 +15,4 @@ Este componente se encarga de pixelar las caras etiquetadas como `menor`, preser
 
 Endpoint expuesto:
 
-* `/pixelate-face` (POST): Recibe una cara y devuelve la cara pixelada.
+* `/pixelar` (POST): Recibe una cara y devuelve la cara pixelada.
