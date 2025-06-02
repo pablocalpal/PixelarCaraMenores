@@ -1,21 +1,73 @@
-### API
+# Docker Compose - Sistema Completo de Protección de Menores
 
-El componente API es el punto de entrada principal del sistema. Este servicio expone un endpoint `/process-image` que gestiona el flujo completo de procesamiento de imágenes.
+Este directorio contiene la configuración de Docker Compose para desplegar todo el sistema de detección y protección de menores en imágenes como un conjunto de microservicios.
 
-#### Flujo de trabajo:
+## 🏗️ Arquitectura del Sistema
 
-1. **Recepción de la imagen:** El cliente envía una imagen al endpoint `/process-image`.
-2. **Envío al Engine:** La imagen se envía al contenedor `Engine` que gestiona la comunicación interna entre los demás contenedores (`Bounding`, `ClasificacionEdad`, `Pixelado`).
-3. **Respuesta final:** `Engine` envía la imagen procesada a la API, que la devuelve al cliente.
+```
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│       Web       │    │   API Gateway   │    │     Engine      │
+│  (index.html)   │◄──►│  (Puerto 8000)  │◄──►│  (Puerto 5003)  │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+                                                       │
+                              ┌────────────────────────┼────────────────────────┐
+                              │                        │                        │
+                              ▼                        ▼                        ▼
+                    ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+                    │    Bounding     │    │ClasificacionEdad│    │    Pixelado     │
+                    │  (Puerto 5001)  │    │ (Puerto 5002)   │    │  (Puerto 5004)  │
+                    └─────────────────┘    └─────────────────┘    └─────────────────┘
+```
 
-#### Requisitos:
+## 🐳 Servicios Incluidos
 
-* Python 3.10+
-* Flask
-* Requests
+### 🌐 **web** - Interfaz Web
+- **Descripción**: Frontend HTML/CSS/JavaScript para cargar imágenes
+- **Acceso**: `/web/index.html`
 
-Para iniciar el contenedor:
+### 🚪 **api** - API Gateway  
+- **Puerto**: 8000
+- **Descripción**: Punto de entrada público del sistema
+- **Endpoint principal**: `POST /pixelar_menores`
+- **Acceso**: http://localhost:8000
+
+### 🤖 **engine** - Motor de Procesamiento
+- **Puerto**: 5003
+- **Descripción**: Orquesta el flujo completo de procesamiento
+- **Endpoint**: `POST /procesar`
+- **Acceso interno**: http://localhost:5003
+
+### 📦 **bounding** - Detección de Rostros
+- **Puerto**: 5001
+- **Descripción**: Detecta rostros y genera bounding boxes
+- **Acceso interno**: http://localhost:5001
+
+### 🧠 **clasificacion** - Clasificación de Edad
+- **Puerto**: 5002
+- **Descripción**: Determina si una persona es menor de edad
+- **Acceso interno**: http://localhost:5002
+
+### 🔒 **pixelado** - Aplicación de Pixelado
+- **Puerto**: 5004
+- **Descripción**: Aplica efectos de pixelado a rostros de menores
+- **Acceso interno**: http://localhost:5004
+
+## 🚀 Despliegue Rápido
+
+
+### Verificación del Despliegue
 
 ```bash
-docker-compose up --build api
+# Estado de todos los servicios
+docker-compose ps
+
+# Logs de todos los servicios
+docker-compose logs
+
+# Logs de un servicio específico
+docker-compose logs api
+docker-compose logs engine
+
+# Seguir logs en tiempo real
+docker-compose logs -f
 ```
