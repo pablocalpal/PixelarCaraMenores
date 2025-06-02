@@ -1,57 +1,112 @@
-# Proyecto de Identificación y Protección de Menores en Imágenes
+# Sistema de Protección de Menores en Imágenes
 
-Este repositorio contiene un sistema completo para la identificación de caras en imágenes, la clasificación de edades y la protección de menores mediante pixelado. El proyecto está compuesto por varios contenedores Docker interconectados que implementan diferentes etapas del proceso:
+Este proyecto implementa un sistema completo para la detección automática de menores en fotografías y su posterior pixelado para proteger su privacidad. El sistema está compuesto por múltiples microservicios que trabajan en conjunto utilizando Docker.
 
-1. **Clasificacion\_Entrenamiento:** Entrena un modelo de clasificación de edades que distingue entre menores y adultos utilizando imágenes faciales.
-2. **Bounding:** Detecta caras en una imagen utilizando un modelo preexistente descargado de internet.
-3. **ClasificacionEdad:** Clasifica cada cara detectada como `menor` o `adulto` usando el modelo entrenado.
-4. **Pixelado:** Aplica un filtro de pixelado a las caras etiquetadas como `menor`.
-5. **Engine:** Coordina el flujo interno entre los contenedores anteriores y estructura las respuestas para la API.
-6. **API:** Expone un endpoint público `/process-image` que inicia el flujo de procesamiento, gestiona las peticiones y devuelve la imagen final procesada.
+## 🎯 Objetivo
 
-## Arquitectura del sistema
+Desarrollar una solución automatizada que:
+- Detecte rostros en imágenes
+- Clasifique la edad de las personas (menor/mayor de edad)
+- Pixele automáticamente los rostros de menores
+- Proporcione una interfaz web para el usuario final
 
-* **Docker:** Cada componente está dockerizado por separado, permitiendo una fácil escalabilidad y despliegue.
-* **Red interna de Docker:** Los contenedores se comunican entre sí a través de una red privada, asegurando que los componentes internos no sean accesibles desde fuera del sistema.
-* **Flujo de procesamiento:** La API envía la imagen al `Engine`, que coordina la detección de caras (`Bounding`), la clasificación de edad (`ClasificacionEdad`) y el pixelado (`Pixelado`), y retorna la imagen final procesada.
+![image](https://github.com/user-attachments/assets/338eb255-cf7e-4632-8b07-4c0e214622fa)
 
-## Requisitos del sistema
+## 🏗️ Arquitectura del Sistema
 
-* Docker y Docker Compose
-* Python 3.10+
-* TensorFlow
-* OpenCV
-* Flask
-* Requests
+El proyecto está organizado en los siguientes servicios:
 
-## Instrucciones de despliegue
+### 🔧 API Gateway (`API/`)
+Punto de entrada principal del sistema que coordina las peticiones entre los diferentes servicios.
 
-1. Clonar el repositorio:
+### 🤖 Engine (`Engine/`)
+Motor principal de procesamiento que orquesta el flujo de trabajo entre los servicios de detección, clasificación y pixelado.
 
+### 📦 Bounding (`Bounding/`)
+Servicio encargado de la detección de rostros en las imágenes y la generación de coordenadas de delimitación.
+
+### 🧠 Clasificación por Edad (`ClasificacionEdad/`)
+Servicio de machine learning que determina si una persona es menor o mayor de edad basándose en características faciales.
+
+### 🔒 Pixelado (`Pixelado/`)
+Servicio que aplica efectos de pixelado a las regiones especificadas para proteger la identidad de los menores.
+
+### 🌐 Web Interface (`web/`)
+Interfaz web desarrollada en HTML/CSS/JavaScript que permite a los usuarios cargar imágenes y visualizar los resultados.
+
+## 🚀 Tecnologías Utilizadas
+
+- **Docker & Docker Compose**: Containerización y orquestación de servicios
+- **Python**: Lenguaje principal para los servicios de backend
+- **OpenCV**: Procesamiento de imágenes
+- **TensorFlow/PyTorch**: Machine learning para clasificación de edad
+- **Flask/FastAPI**: APIs REST
+- **HTML/CSS/JavaScript**: Frontend web
+- **Jupyter Notebooks**: Entrenamiento y experimentación de modelos
+
+## 🔧 Instalación y Configuración
+
+1. **Clonar el repositorio**
    ```bash
-   git clone <URL del repositorio>
-   cd <directorio del repositorio>
+   git clone https://github.com/pablocalpal/PixelarCaraMenores
+   cd clasificacion-entrenamiento
    ```
-2. Construir los contenedores:
 
+2. **Construir los contenedores**
    ```bash
-   docker-compose up --build
+   docker-compose build
    ```
-3. Acceder a la API:
 
-   * Endpoint principal: `http://localhost:5000/process-image`
+3. **Iniciar los servicios**
+   ```bash
+   docker-compose up -d
+   ```
 
-## Flujo de trabajo
+4. **Verificar que todos los servicios estén funcionando**
+   ```bash
+   docker-compose ps
+   ```
 
-* **Entrada:** Imagen enviada a la API en formato base64.
-* **Procesamiento:**
+## 📖 Uso del Sistema
 
-  1. Detección de caras (`Bounding`).
-  2. Clasificación de edad (`ClasificacionEdad`).
-  3. Pixelado de caras de menores (`Pixelado`).
-* **Salida:** Imagen con las caras de menores pixeladas.
+1. **Acceder a la interfaz web** en el archivo `./web/index.html`
+2. **Cargar una imagen** utilizando el formulario de upload
+3. **Procesar la imagen** - el sistema automáticamente:
+   - Detectará los rostros
+   - Clasificará la edad de cada persona
+   - Pixelará los rostros de menores detectados
+4. **Descargar el resultado** con las protecciones aplicadas
 
-## Desarrollo y pruebas
+## 🔄 Flujo de Procesamiento
 
-* Cada componente tiene su propio archivo `readme.md` que detalla el propósito, los endpoints y las instrucciones específicas de ejecución.
-* Los modelos de clasificación se entrenan en el notebook `entrenamiento.ipynb` dentro del componente `Clasificacion_Entrenamiento`
+```
+Imagen Original → Detección de Rostros → Clasificación de Edad → Pixelado Selectivo → Imagen Procesada
+```
+
+## 📁 Estructura de Directorios
+
+```
+clasificacion-entrenamiento/
+├── API/                    # Gateway y coordinador principal
+├── Bounding/              # Detección de rostros
+├── ClasificacionEdad/     # Clasificación de edad
+├── Engine/                # Motor de procesamiento
+├── Pixelado/             # Aplicación de efectos de privacidad
+├── web/                  # Interfaz de usuario
+└── docker-compose.yml    # Configuración de servicios
+```
+
+## 🛠️ Desarrollo y Contribución
+
+### Configuración de Desarrollo
+
+1. Cada servicio puede desarrollarse independientemente
+2. Utilizar los Dockerfiles individuales para testing
+3. El notebook de jupyter de entrenamiento del modelo de clasificación es público para experimentar con el / hacer transferencia de conocimiento.
+
+## 🔒 Consideraciones de Privacidad
+
+Este sistema está diseñado para **proteger la privacidad de menores**. Todas las imágenes procesadas:
+- Se mantienen en memoria durante el procesamiento
+- No se almacenan permanentemente en el servidor
+- Se procesan de forma local sin envío a servicios externos
