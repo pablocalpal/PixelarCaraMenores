@@ -39,8 +39,8 @@ Interfaz web desarrollada en HTML/CSS/JavaScript que permite a los usuarios carg
 - **Docker & Docker Compose**: Containerización y orquestación de servicios
 - **Python**: Lenguaje principal para los servicios de backend
 - **OpenCV**: Procesamiento de imágenes
-- **TensorFlow/PyTorch**: Machine learning para clasificación de edad
-- **Flask/FastAPI**: APIs REST
+- **TensorFlow**: Machine learning para clasificación de edad
+- **Flask**: APIs REST
 - **HTML/CSS/JavaScript**: Frontend web
 - **Jupyter Notebooks**: Entrenamiento y experimentación de modelos
 
