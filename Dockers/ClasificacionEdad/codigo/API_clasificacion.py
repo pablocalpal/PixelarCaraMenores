@@ -37,7 +37,7 @@ def validate_image(file):
     
     # Intentar abrir la imagen para validarla
     try:
-        # Use OpenCV to read and validate the image
+        # Validamos y abrimos la imagen con cv2 
         img_bytes = file.read()
         file.seek(0)  # Reset file pointer
         img_np = cv2.imdecode(np.frombuffer(img_bytes, np.uint8), cv2.IMREAD_COLOR)

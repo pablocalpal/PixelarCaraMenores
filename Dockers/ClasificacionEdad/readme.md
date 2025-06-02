@@ -17,4 +17,3 @@ Este componente implementa la clasificación de edades utilizando el modelo entr
 Endpoint expuesto:
 
 * `/classify-age` (POST): Recibe una cara y devuelve la etiqueta (`menor` o `adulto`).
-
